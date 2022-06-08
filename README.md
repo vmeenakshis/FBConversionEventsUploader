@@ -46,7 +46,30 @@ public class OfflineEvent
 		public string event_source { get; set; }
 	}
 
+A Simple POST using HTTPCLIENT Does the majic.
+	
+	private string simplePost(string token, List<OfflineEvent> oData, string eventID)
+        {
+            using (var client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/x-www-form-urlencoded"));
+                client.DefaultRequestHeaders.Add("Accept", "*/*");
 
+                var Parameters = new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("access_token", token),
+                        new KeyValuePair<string, string>("upload_tag", "AutoUpload"),
+                        new KeyValuePair<string, string>("data", JsonSerializer.Serialize(oData)),
+                    };
+
+                var Request = new HttpRequestMessage(HttpMethod.Post, string.Format(fbGraphOfflineEventsApiUrl, eventID))
+                {
+                    Content = new FormUrlEncodedContent(Parameters)
+                };
+
+                return client.SendAsync(Request).Result.Content.ReadAsStringAsync().Result;
+            }
+        }
 
 From FB wiki, the actual curl:  https://developers.facebook.com/docs/marketing-api/offline-conversions#upload-events
 
